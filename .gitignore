@@ -42,3 +42,11 @@ htmlcov/
 
 # Node / frontend
 node_modules/
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+docker-compose.*.yml
+.docker/
+docker/
