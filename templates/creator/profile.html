@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Профиль - Портал мастер-классов{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <i class="bi bi-person-circle text-primary" style="font-size: 5rem;"></i>
+                </div>
+                <h5 class="text-center">{{ user.name }}</h5>
+                <p class="text-center text-muted">{{ user.email }}</p>
+                <hr>
+                <a href="{{ url_for('creator.dashboard') }}" class="btn btn-outline-primary w-100 mb-2">
+                    <i class="bi bi-speedometer2"></i> Панель управления
+                </a>
+                <a href="{{ url_for('creator.logout') }}" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-box-arrow-right"></i> Выход
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-9">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-person-gear"></i> Профиль создателя ивентов</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('creator.profile') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Имя пользователя</strong></label>
+                        <input type="text" class="form-control" value="{{ user.name }}" disabled>
+                        <small class="text-muted">Для изменения имени обратитесь к администратору</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Email</strong></label>
+                        <input type="email" class="form-control" value="{{ user.email }}" disabled>
+                        <small class="text-muted">Для изменения email обратитесь к администратору</small>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6 class="mb-3">Информация о компании</h6>
+                    
+                    <div class="mb-3">
+                        {{ form.company_name.label(class="form-label") }}
+                        {{ form.company_name(class="form-control" + (" is-invalid" if form.company_name.errors else "")) }}
+                        {% if form.company_name.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.company_name.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                        <small class="text-muted">Название вашей компании или организации</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows=5) }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.description.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                        <small class="text-muted">Расскажите о себе и своей деятельности</small>
+                    </div>
+                    
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Информация об аккаунте</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Роль:</strong> Создатель ивентов</p>
+                        <p><strong>Статус:</strong> 
+                            {% if creator.verified %}
+                                <span class="badge bg-success">Верифицирован</span>
+                            {% else %}
+                                <span class="badge bg-warning">Не верифицирован</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Дата регистрации:</strong> {{ creator.created_at.strftime('%d.%m.%Y') }}</p>
+                        <p><strong>Телефон:</strong> {{ user.phone or 'Не указан' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

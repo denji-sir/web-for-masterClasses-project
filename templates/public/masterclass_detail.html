@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}{{ masterclass.title }} - Портал мастер-классов{% endblock %}
+
+{% block content %}
+<div class="row fade-in">
+    <div class="col-lg-8">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('public.index') }}">Главная</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ masterclass.title }}</li>
+            </ol>
+        </nav>
+
+        <div class="masterclass-detail">
+            <h1>{{ masterclass.title }}</h1>
+            
+            <div class="mb-4">
+                <h5 class="mb-3">Описание</h5>
+                <p class="lead">{{ masterclass.description or 'Описание отсутствует' }}</p>
+            </div>
+
+            <div class="masterclass-info">
+                <div class="info-item">
+                    <i class="bi bi-calendar-event"></i>
+                    <div>
+                        <small class="text-muted d-block">Дата и время</small>
+                        <strong>{{ masterclass.date_time.strftime('%d.%m.%Y в %H:%M') }}</strong>
+                    </div>
+                </div>
+                
+                <div class="info-item">
+                    <i class="bi bi-people-fill"></i>
+                    <div>
+                        <small class="text-muted d-block">Участники</small>
+                        <strong>{{ masterclass.current_participants }} из {{ masterclass.max_participants }}</strong>
+                    </div>
+                </div>
+                
+                <div class="info-item">
+                    <i class="bi bi-currency-exchange"></i>
+                    <div>
+                        <small class="text-muted d-block">Стоимость</small>
+                        {% if masterclass.price %}
+                        <strong class="text-primary">{{ masterclass.price }} ₽</strong>
+                        {% else %}
+                        <strong class="text-success">Бесплатно</strong>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if masterclass.category %}
+                <div class="info-item">
+                    <i class="bi bi-tag-fill"></i>
+                    <div>
+                        <small class="text-muted d-block">Категория</small>
+                        <span class="badge bg-secondary">{{ masterclass.category }}</span>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="info-item">
+                    <i class="bi bi-person-badge"></i>
+                    <div>
+                        <small class="text-muted d-block">Создатель</small>
+                        <strong>{{ masterclass.creator.company_name or masterclass.creator.user.name }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card sticky-top" style="top: 20px;">
+            <div class="card-body">
+                <h5 class="card-title">Регистрация</h5>
+                
+                {% if masterclass.can_register() %}
+                <div class="alert alert-success">
+                    <i class="bi bi-check-circle"></i> 
+                    Доступно {{ masterclass.available_spots }} 
+                    {% if masterclass.available_spots == 1 %}место{% elif masterclass.available_spots < 5 %}места{% else %}мест{% endif %}
+                </div>
+                
+                <a href="{{ url_for('public.register', masterclass_id=masterclass.id) }}" 
+                   class="btn btn-primary btn-lg w-100">
+                    <i class="bi bi-pencil-square"></i> Зарегистрироваться
+                </a>
+                {% elif masterclass.is_full %}
+                <div class="alert alert-danger">
+                    <i class="bi bi-x-circle"></i> Все места заняты
+                </div>
+                {% elif not masterclass.is_upcoming %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-clock-history"></i> Мастер-класс уже прошел
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i> Регистрация недоступна
+                </div>
+                {% endif %}
+                
+                <hr>
+                
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('public.index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Назад к списку
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

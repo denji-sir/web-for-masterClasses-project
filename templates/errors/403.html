@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Доступ запрещен{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-ban"></i> Доступ запрещен
+                    </h4>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-lock fa-5x text-danger"></i>
+                    </div>
+                    <h5 class="card-title">У вас нет прав для доступа к этой странице</h5>
+                    <p class="card-text text-muted">
+                        Для доступа к этому разделу требуются специальные права.
+                    </p>
+                    <div class="mt-4">
+                        <a href="{{ url_for('public.index') }}" class="btn btn-primary">
+                            <i class="fas fa-home"></i> На главную
+                        </a>
+                        <button onclick="history.back()" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Назад
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

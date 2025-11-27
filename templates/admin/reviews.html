@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Модерация отзывов - Админ панель{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2">
+            <div class="list-group">
+                <a href="{{ url_for('admin.dashboard') }}" class="list-group-item list-group-item-action">
+                    <i class="bi bi-speedometer2"></i> Панель управления
+                </a>
+                <a href="{{ url_for('admin.users') }}" class="list-group-item list-group-item-action">
+                    <i class="bi bi-people"></i> Пользователи
+                </a>
+                <a href="{{ url_for('admin.masterclasses') }}" class="list-group-item list-group-item-action">
+                    <i class="bi bi-calendar-event"></i> Мастер-классы
+                </a>
+                <a href="{{ url_for('admin.reviews') }}" class="list-group-item list-group-item-action active">
+                    <i class="bi bi-star"></i> Отзывы
+                </a>
+                <a href="{{ url_for('admin.logout') }}" class="list-group-item list-group-item-action text-danger">
+                    <i class="bi bi-box-arrow-right"></i> Выход
+                </a>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <div class="col-md-10">
+            <!-- Заголовок -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Модерация отзывов</h1>
+                <div>
+                    <span class="text-muted">Администратор: {{ user.name }}</span>
+                </div>
+            </div>
+
+            <!-- Фильтры -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('admin.reviews') }}" class="row g-3">
+                        <div class="col-auto">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="show_approved" id="show_approved" 
+                                       value="true" {% if show_approved %}checked{% endif %} onchange="this.form.submit()">
+                                <label class="form-check-label" for="show_approved">
+                                    Показать одобренные отзывы
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Статистика -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> 
+                        {% if show_approved %}
+                            Всего отзывов: {{ reviews|length }}
+                        {% else %}
+                            Отзывов на модерации: {{ reviews|length }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Список отзывов -->
+            {% if reviews %}
+                <div class="row">
+                    {% for review in reviews %}
+                    <div class="col-md-12 mb-3">
+                        <div class="card {% if not review.is_approved %}border-warning{% endif %}">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ review.user.name }}</strong>
+                                    <span class="text-muted">→</span>
+                                    <a href="{{ url_for('admin.masterclass_detail', masterclass_id=review.masterclass.id) }}">
+                                        {{ review.masterclass.title }}
+                                    </a>
+                                </div>
+                                <div>
+                                    {% if review.is_approved %}
+                                        <span class="badge bg-success">Одобрен</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">На модерации</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-2">
+                                    <span class="text-warning">
+                                        {% for i in range(review.rating) %}⭐{% endfor %}
+                                    </span>
+                                    <span class="text-muted ms-2">{{ review.rating }}/5</span>
+                                    <span class="text-muted ms-3">
+                                        <i class="bi bi-calendar"></i> {{ review.created_at.strftime('%d.%m.%Y %H:%M') }}
+                                    </span>
+                                </div>
+                                {% if review.comment %}
+                                <p class="card-text">{{ review.comment }}</p>
+                                {% else %}
+                                <p class="card-text text-muted fst-italic">Без комментария</p>
+                                {% endif %}
+                            </div>
+                            <div class="card-footer">
+                                <div class="btn-group" role="group">
+                                    {% if not review.is_approved %}
+                                    <form method="POST" action="{{ url_for('admin.approve_review', review_id=review.id) }}" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-success">
+                                            <i class="bi bi-check-circle"></i> Одобрить
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <form method="POST" action="{{ url_for('admin.reject_review', review_id=review.id) }}" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-warning">
+                                            <i class="bi bi-x-circle"></i> Отклонить
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    <form method="POST" action="{{ url_for('admin.delete_review', review_id=review.id) }}" class="d-inline" 
+                                          onsubmit="return confirm('Вы уверены, что хотите удалить этот отзыв?');">
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="bi bi-trash"></i> Удалить
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> 
+                    {% if show_approved %}
+                        Нет отзывов в системе
+                    {% else %}
+                        Нет отзывов на модерации
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

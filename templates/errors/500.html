@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Ошибка сервера - 500{% endblock %}
+
+{% block content %}
+<div class="error-page">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h1 class="display-1">500</h1>
+                <h2>Внутренняя ошибка сервера</h2>
+                <p class="lead">
+                    Произошла непредвиденная ошибка. Мы уже работаем над её устранением.
+                </p>
+                <p class="text-muted">
+                    Пожалуйста, попробуйте обновить страницу или вернитесь позже.
+                </p>
+                <div class="mt-4">
+                    <a href="{{ url_for('public.index') }}" class="btn btn-primary btn-lg me-2">
+                        <i class="bi bi-house-door"></i> На главную
+                    </a>
+                    <button onclick="location.reload()" class="btn btn-outline-primary btn-lg">
+                        <i class="bi bi-arrow-clockwise"></i> Обновить страницу
+                    </button>
+                </div>
+                <div class="mt-5">
+                    <img src="https://via.placeholder.com/400x300/dc3545/ffffff?text=500" 
+                         alt="500" 
+                         class="img-fluid rounded"
+                         style="max-width: 400px; opacity: 0.8;">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

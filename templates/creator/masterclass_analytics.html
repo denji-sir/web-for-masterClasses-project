@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Аналитика мастер-класса - {{ masterclass.title }}{% endblock %}
+
+{% block content %}
+<!-- Заголовок -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0"><i class="bi bi-graph-up"></i> {{ masterclass.title }}</h4>
+                        <p class="text-muted mb-0">Аналитика мастер-класса</p>
+                    </div>
+                    <div>
+                        <a href="{{ url_for('creator.export_participants_csv', masterclass_id=masterclass.id) }}" 
+                           class="btn btn-success me-2">
+                            <i class="bi bi-download"></i> Экспорт CSV
+                        </a>
+                        <a href="{{ url_for('creator.dashboard') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Назад
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Основная информация -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-calendar-event text-primary" style="font-size: 2rem;"></i>
+                <h5 class="mt-2">{{ masterclass.date_time.strftime('%d.%m.%Y') }}</h5>
+                <p class="text-muted mb-0">{{ masterclass.date_time.strftime('%H:%M') }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-people text-info" style="font-size: 2rem;"></i>
+                <h3 class="mt-2">{{ analytics.current_participants }}/{{ analytics.max_participants }}</h3>
+                <p class="text-muted mb-0">Участников</p>
+                <small class="text-success">{{ analytics.fill_percentage }}% заполнено</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-star text-warning" style="font-size: 2rem;"></i>
+                <h3 class="mt-2">{{ analytics.average_rating or 'N/A' }}{% if analytics.average_rating %}★{% endif %}</h3>
+                <p class="text-muted mb-0">Рейтинг</p>
+                <small class="text-muted">{{ analytics.review_count }} отзывов</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-currency-dollar text-success" style="font-size: 2rem;"></i>
+                <h3 class="mt-2">{{ analytics.revenue }} ₽</h3>
+                <p class="text-muted mb-0">Доход</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Статус заполняемости -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Заполняемость</h5>
+            </div>
+            <div class="card-body">
+                <div class="progress" style="height: 30px;">
+                    <div class="progress-bar {% if analytics.is_full %}bg-success{% else %}bg-info{% endif %}" 
+                         role="progressbar" 
+                         style="width: {{ analytics.fill_percentage }}%;" 
+                         aria-valuenow="{{ analytics.fill_percentage }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                        {{ analytics.fill_percentage }}%
+                    </div>
+                </div>
+                <p class="text-center mt-2 mb-0">
+                    {% if analytics.is_full %}
+                        <span class="badge bg-success">Полностью заполнен</span>
+                    {% else %}
+                        <span class="badge bg-info">Доступно {{ analytics.max_participants - analytics.current_participants }} мест</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Последние отзывы -->
+{% if analytics.recent_reviews %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-chat-quote"></i> Последние отзывы</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    {% for review in analytics.recent_reviews %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>{{ review.user }}</strong>
+                                <span class="text-warning ms-2">
+                                    {% for i in range(review.rating) %}★{% endfor %}
+                                </span>
+                                <br>
+                                {% if review.comment %}
+                                <p class="mb-0 mt-2">{{ review.comment }}</p>
+                                {% endif %}
+                            </div>
+                            <small class="text-muted">{{ review.created_at }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Действия -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center">
+                <a href="{{ url_for('creator.view_participants', masterclass_id=masterclass.id) }}" 
+                   class="btn btn-info me-2">
+                    <i class="bi bi-people"></i> Просмотреть участников
+                </a>
+                <a href="{{ url_for('creator.edit_masterclass', masterclass_id=masterclass.id) }}" 
+                   class="btn btn-primary me-2">
+                    <i class="bi bi-pencil"></i> Редактировать мастер-класс
+                </a>
+                <a href="{{ url_for('creator.export_participants_csv', masterclass_id=masterclass.id) }}" 
+                   class="btn btn-success">
+                    <i class="bi bi-download"></i> Экспорт участников (CSV)
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

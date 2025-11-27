@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Страница не найдена - 404{% endblock %}
+
+{% block content %}
+<div class="error-page">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h1 class="display-1">404</h1>
+                <h2>Страница не найдена</h2>
+                <p class="lead">
+                    К сожалению, запрашиваемая страница не существует или была перемещена.
+                </p>
+                <div class="mt-4">
+                    <a href="{{ url_for('public.index') }}" class="btn btn-primary btn-lg me-2">
+                        <i class="bi bi-house-door"></i> На главную
+                    </a>
+                    <a href="{{ url_for('public.search') }}" class="btn btn-outline-primary btn-lg">
+                        <i class="bi bi-search"></i> Поиск мастер-классов
+                    </a>
+                </div>
+                <div class="mt-5">
+                    <img src="https://via.placeholder.com/400x300/0d6efd/ffffff?text=404" 
+                         alt="404" 
+                         class="img-fluid rounded"
+                         style="max-width: 400px; opacity: 0.8;">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

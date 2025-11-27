@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}{{ masterclass.title }} - Административная панель{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2><i class="bi bi-calendar-event"></i> {{ masterclass.title }}</h2>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('admin.masterclasses') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Назад
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Информация о мастер-классе -->
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Информация о мастер-классе</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p><strong>Создатель:</strong><br>
+                            {{ masterclass.creator.company_name or masterclass.creator.user.name }}
+                        </p>
+                        <p><strong>Email создателя:</strong><br>
+                            {{ masterclass.creator.user.email }}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Дата и время:</strong><br>
+                            {{ masterclass.date_time.strftime('%d.%m.%Y в %H:%M') }}
+                        </p>
+                        <p><strong>Категория:</strong><br>
+                            {% if masterclass.category %}
+                                <span class="badge bg-info">{{ masterclass.category }}</span>
+                            {% else %}
+                                Не указана
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p><strong>Участники:</strong><br>
+                            <span class="badge {% if masterclass.is_full %}bg-danger{% else %}bg-success{% endif %} fs-6">
+                                {{ masterclass.current_participants }}/{{ masterclass.max_participants }}
+                            </span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Стоимость:</strong><br>
+                            {% if masterclass.price %}
+                                {{ masterclass.price }} ₽
+                            {% else %}
+                                Бесплатно
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <p><strong>Описание:</strong></p>
+                    <p>{{ masterclass.description or 'Описание отсутствует' }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <p><strong>Статус:</strong>
+                        {% if masterclass.is_active %}
+                            <span class="badge bg-success">Активен</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Неактивен</span>
+                        {% endif %}
+                        
+                        {% if masterclass.is_upcoming %}
+                            <span class="badge bg-info">Предстоящий</span>
+                        {% else %}
+                            <span class="badge bg-warning">Прошедший</span>
+                        {% endif %}
+                    </p>
+                </div>
+                
+                <div class="d-flex gap-2">
+                    <form method="POST" action="{{ url_for('admin.toggle_masterclass_active', masterclass_id=masterclass.id) }}">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-{% if masterclass.is_active %}pause{% else %}play{% endif %}"></i>
+                            {% if masterclass.is_active %}Деактивировать{% else %}Активировать{% endif %}
+                        </button>
+                    </form>
+                    
+                    <form method="POST" action="{{ url_for('admin.delete_masterclass', masterclass_id=masterclass.id) }}">
+                        <button type="submit" class="btn btn-danger"
+                                onclick="return confirm('Удалить мастер-класс? Все участники будут уведомлены!')">
+                            <i class="bi bi-trash"></i> Удалить мастер-класс
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Список участников -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-people"></i> Участники ({{ participants|length }})
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if participants %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Имя</th>
+                                <th>Email</th>
+                                <th>Телефон</th>
+                                <th>Дата регистрации</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in participants %}
+                            <tr>
+                                <td>{{ p.user_name }}</td>
+                                <td>{{ p.user_email }}</td>
+                                <td>{{ p.user_phone or '-' }}</td>
+                                <td>{{ p.registered_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                    <p>Пока нет участников</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Боковая панель -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Метаданные</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>ID:</strong> {{ masterclass.id }}</p>
+                <p><strong>Создан:</strong><br>{{ masterclass.created_at.strftime('%d.%m.%Y %H:%M') }}</p>
+                <p><strong>Обновлен:</strong><br>{{ masterclass.updated_at.strftime('%d.%m.%Y %H:%M') }}</p>
+                <p><strong>Свободных мест:</strong><br>{{ masterclass.available_spots }}</p>
+                <p><strong>Можно регистрироваться:</strong><br>
+                    {% if masterclass.can_register() %}
+                        <span class="badge bg-success">Да</span>
+                    {% else %}
+                        <span class="badge bg-danger">Нет</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

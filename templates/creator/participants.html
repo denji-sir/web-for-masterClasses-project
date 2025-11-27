@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Участники мастер-класса - Портал мастер-классов{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-1">{{ masterclass.title }}</h4>
+                        <p class="text-muted mb-0">
+                            <i class="bi bi-calendar-event"></i> {{ masterclass.date_time.strftime('%d.%m.%Y в %H:%M') }}
+                        </p>
+                    </div>
+                    <div>
+                        <a href="{{ url_for('creator.dashboard') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Назад к панели
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-people"></i> Список участников</h5>
+                <span class="badge bg-light text-dark">
+                    {{ participants|length }} / {{ masterclass.max_participants }}
+                </span>
+            </div>
+            <div class="card-body">
+                {% if participants %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Имя</th>
+                                    <th>Email</th>
+                                    <th>Телефон</th>
+                                    <th>Дата регистрации</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for participant in participants %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>
+                                        <i class="bi bi-person-fill text-primary"></i>
+                                        {{ participant.user_name }}
+                                    </td>
+                                    <td>
+                                        <i class="bi bi-envelope"></i>
+                                        <a href="mailto:{{ participant.user_email }}">{{ participant.user_email }}</a>
+                                    </td>
+                                    <td>
+                                        {% if participant.user_phone %}
+                                            <i class="bi bi-telephone"></i>
+                                            {{ participant.user_phone }}
+                                        {% else %}
+                                            <span class="text-muted">Не указан</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ participant.registered_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">Статистика</h6>
+                                    <p class="mb-1"><strong>Всего участников:</strong> {{ participants|length }}</p>
+                                    <p class="mb-1"><strong>Свободных мест:</strong> {{ masterclass.available_spots }}</p>
+                                    <p class="mb-0"><strong>Заполненность:</strong> 
+                                        {% set fill_percent = (masterclass.current_participants / masterclass.max_participants * 100)|int %}
+                                        {{ fill_percent }}%
+                                    </p>
+                                    <div class="progress mt-2">
+                                        <div class="progress-bar" role="progressbar" 
+                                             style="width: {{ fill_percent }}%"
+                                             aria-valuenow="{{ fill_percent }}" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">Действия</h6>
+                                    <button class="btn btn-sm btn-outline-primary mb-2 w-100" onclick="window.print()">
+                                        <i class="bi bi-printer"></i> Печать списка
+                                    </button>
+                                    <a href="{{ url_for('creator.export_participants_csv', masterclass_id=masterclass.id) }}" 
+                                       class="btn btn-sm btn-outline-success w-100">
+                                        <i class="bi bi-file-earmark-spreadsheet"></i> Экспорт в CSV
+                                    </a>
+                                    <a href="{{ url_for('creator.masterclass_analytics', masterclass_id=masterclass.id) }}" 
+                                       class="btn btn-sm btn-outline-info w-100 mt-2">
+                                        <i class="bi bi-graph-up"></i> Аналитика мастер-класса
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
+                        <p class="text-muted mt-3">Пока нет зарегистрированных участников</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+function exportToCSV() {
+    const rows = [
+        ['№', 'Имя', 'Email', 'Телефон', 'Дата регистрации']
+    ];
+    
+    {% for participant in participants %}
+    rows.push([
+        '{{ loop.index }}',
+        '{{ participant.user_name }}',
+        '{{ participant.user_email }}',
+        '{{ participant.user_phone or "" }}',
+        '{{ participant.registered_at.strftime("%d.%m.%Y %H:%M") }}'
+    ]);
+    {% endfor %}
+    
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+    rows.forEach(function(rowArray) {
+        let row = rowArray.map(field => '"' + field + '"').join(',');
+        csvContent += row + "\r\n";
+    });
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "participants_{{ masterclass.id }}.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+</script>
+{% endblock %}
+{% endblock %}

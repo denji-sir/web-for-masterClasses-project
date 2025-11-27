@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Поиск мастер-классов - Портал мастер-классов{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Расширенный поиск мастер-классов</h1>
+        
+        <!-- Сохраненные предпочтения -->
+        {% if saved_preferences %}
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="bi bi-bookmark-check"></i> 
+            У вас есть сохраненные поисковые предпочтения. 
+            <a href="{{ url_for('public.search', 
+                category=saved_preferences.category,
+                price_min=saved_preferences.price_min,
+                price_max=saved_preferences.price_max,
+                min_rating=saved_preferences.min_rating,
+                sort_by=saved_preferences.sort_by,
+                sort_order=saved_preferences.sort_order
+            ) }}" class="alert-link">Применить</a>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endif %}
+        
+        <!-- Популярные категории -->
+        {% if popular_categories %}
+        <div class="mb-4">
+            <h5>Популярные категории:</h5>
+            <div class="d-flex flex-wrap gap-2">
+                {% for cat, count in popular_categories %}
+                <a href="{{ url_for('public.search', category=cat) }}" class="btn btn-outline-primary btn-sm">
+                    {{ cat }} ({{ count }})
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Параметры поиска</h5>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="{{ url_for('public.search') }}" id="searchForm">
+                    <div class="row g-3">
+                        <!-- Полнотекстовый поиск -->
+                        <div class="col-md-12">
+                            {{ form.query.label(class="form-label") }}
+                            <div class="input-group">
+                                {{ form.query(class="form-control", placeholder="Поиск по названию и описанию...", id="searchQuery") }}
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-search"></i> Искать
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Категория -->
+                        <div class="col-md-4">
+                            {{ form.category.label(class="form-label") }}
+                            {{ form.category(class="form-select") }}
+                        </div>
+                        
+                        <!-- Рейтинг -->
+                        <div class="col-md-4">
+                            {{ form.min_rating.label(class="form-label") }}
+                            {{ form.min_rating(class="form-select") }}
+                        </div>
+                        
+                        <!-- Сортировка -->
+                        <div class="col-md-2">
+                            {{ form.sort_by.label(class="form-label") }}
+                            {{ form.sort_by(class="form-select") }}
+                        </div>
+                        
+                        <div class="col-md-2">
+                            {{ form.sort_order.label(class="form-label") }}
+                            {{ form.sort_order(class="form-select") }}
+                        </div>
+                        
+                        <!-- Диапазон дат -->
+                        <div class="col-md-6">
+                            {{ form.date_from.label(class="form-label") }}
+                            {{ form.date_from(class="form-control", type="date") }}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            {{ form.date_to.label(class="form-label") }}
+                            {{ form.date_to(class="form-control", type="date") }}
+                            {% if form.date_to.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.date_to.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Диапазон цен -->
+                        <div class="col-md-6">
+                            {{ form.price_min.label(class="form-label") }}
+                            {{ form.price_min(class="form-control", placeholder="0", step="0.01") }}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            {{ form.price_max.label(class="form-label") }}
+                            {{ form.price_max(class="form-control", placeholder="10000", step="0.01") }}
+                            {% if form.price_max.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.price_max.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Кнопки действий -->
+                        <div class="col-12">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-search"></i> Искать
+                                </button>
+                                <a href="{{ url_for('public.search') }}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-x-circle"></i> Сбросить
+                                </a>
+                                {% if session.get('user_id') %}
+                                <button type="submit" name="save_preferences" value="1" class="btn btn-outline-success">
+                                    <i class="bi bi-bookmark"></i> Сохранить предпочтения
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if request.args %}
+        <!-- Результаты поиска -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="mb-0">
+                {% if masterclasses %}
+                Найдено: {{ masterclasses|length }} 
+                {% if masterclasses|length == 1 %}мастер-класс{% elif masterclasses|length < 5 %}мастер-класса{% else %}мастер-классов{% endif %}
+                {% else %}
+                Мастер-классы не найдены
+                {% endif %}
+            </h3>
+            
+            {% if masterclasses %}
+            <div class="text-muted">
+                Сортировка: 
+                {% if current_sort == 'date' %}по дате
+                {% elif current_sort == 'price' %}по цене
+                {% elif current_sort == 'popularity' %}по популярности
+                {% elif current_sort == 'rating' %}по рейтингу
+                {% elif current_sort == 'title' %}по названию
+                {% endif %}
+                ({{ 'по возрастанию' if current_order == 'asc' else 'по убыванию' }})
+            </div>
+            {% endif %}
+        </div>
+        
+        {% if masterclasses %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for masterclass in masterclasses %}
+            <div class="col">
+                <div class="card h-100 shadow-sm hover-shadow">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ masterclass.title }}</h5>
+                        <p class="card-text text-muted">
+                            {{ masterclass.description[:150] }}{% if masterclass.description and masterclass.description|length > 150 %}...{% endif %}
+                        </p>
+                        
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="bi bi-calendar-event"></i> 
+                                {{ masterclass.date_time.strftime('%d.%m.%Y в %H:%M') }}
+                            </small>
+                        </div>
+                        
+                        {% if masterclass.category %}
+                        <div class="mb-2">
+                            <span class="badge bg-secondary">{{ masterclass.category }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Рейтинг -->
+                        {% if masterclass_ratings.get(masterclass.id) and masterclass_ratings[masterclass.id].rating %}
+                        <div class="mb-2">
+                            <span class="text-warning">
+                                {% for i in range(5) %}
+                                    {% if i < masterclass_ratings[masterclass.id].rating|round|int %}
+                                    ⭐
+                                    {% endif %}
+                                {% endfor %}
+                            </span>
+                            <small class="text-muted">
+                                {{ masterclass_ratings[masterclass.id].rating }} 
+                                ({{ masterclass_ratings[masterclass.id].count }} 
+                                {% if masterclass_ratings[masterclass.id].count == 1 %}отзыв
+                                {% elif masterclass_ratings[masterclass.id].count < 5 %}отзыва
+                                {% else %}отзывов{% endif %})
+                            </small>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="mb-2">
+                            {% if masterclass.price %}
+                            <strong class="text-primary">{{ masterclass.price }} ₽</strong>
+                            {% else %}
+                            <strong class="text-success">Бесплатно</strong>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="bi bi-people"></i> 
+                                {{ masterclass.current_participants }}/{{ masterclass.max_participants }} участников
+                            </small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {% if masterclass.is_full %}
+                            <span class="badge bg-danger">Мест нет</span>
+                            {% else %}
+                            <span class="badge bg-success">
+                                Осталось {{ masterclass.available_spots }} 
+                                {% if masterclass.available_spots == 1 %}место{% elif masterclass.available_spots < 5 %}места{% else %}мест{% endif %}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer bg-transparent">
+                        <a href="{{ url_for('public.masterclass_detail', masterclass_id=masterclass.id) }}" 
+                           class="btn btn-primary w-100">
+                            Подробнее
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> 
+            По вашему запросу ничего не найдено. Попробуйте изменить параметры поиска.
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.hover-shadow {
+    transition: box-shadow 0.3s ease;
+}
+.hover-shadow:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Административная панель - Портал мастер-классов{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2><i class="bi bi-shield-lock-fill"></i> Административная панель</h2>
+        <p class="text-muted">Добро пожаловать, {{ user.name }}!</p>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('admin.logout') }}" class="btn btn-outline-danger">
+            <i class="bi bi-box-arrow-right"></i> Выйти
+        </a>
+    </div>
+</div>
+
+<!-- Навигация админки -->
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+        <a class="nav-link active" href="{{ url_for('admin.dashboard') }}">
+            <i class="bi bi-speedometer2"></i> Панель управления
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('admin.users') }}">
+            <i class="bi bi-people-fill"></i> Пользователи
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('admin.masterclasses') }}">
+            <i class="bi bi-calendar-event"></i> Мастер-классы
+        </a>
+    </li>
+</ul>
+
+<!-- Статистика -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-people"></i> Пользователи</h5>
+                <h2 class="mb-0">{{ stats.total_users }}</h2>
+                <small>Активных пользователей</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-person-badge"></i> Создатели</h5>
+                <h2 class="mb-0">{{ stats.total_event_creators }}</h2>
+                <small>Создателей ивентов</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-calendar-event"></i> Мастер-классы</h5>
+                <h2 class="mb-0">{{ stats.total_masterclasses }}</h2>
+                <small>Всего мастер-классов</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-person-check"></i> Регистрации</h5>
+                <h2 class="mb-0">{{ stats.total_registrations }}</h2>
+                <small>Всего регистраций</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Последние пользователи -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-people"></i> Последние пользователи</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Имя</th>
+                                <th>Email</th>
+                                <th>Роль</th>
+                                <th>Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in recent_users %}
+                            <tr>
+                                <td>{{ u.name }}</td>
+                                <td>{{ u.email }}</td>
+                                <td>
+                                    {% if u.role == 'admin' %}
+                                        <span class="badge bg-danger">Администратор</span>
+                                    {% elif u.role == 'event_creator' %}
+                                        <span class="badge bg-success">Создатель</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Пользователь</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if u.is_active %}
+                                        <span class="badge bg-success">Активен</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Заблокирован</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-primary">Все пользователи</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Последние мастер-классы -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-calendar-event"></i> Последние мастер-классы</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Название</th>
+                                <th>Дата</th>
+                                <th>Участники</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for m in recent_masterclasses %}
+                            <tr>
+                                <td>{{ m.title }}</td>
+                                <td>{{ m.date_time.strftime('%d.%m.%Y') }}</td>
+                                <td>{{ m.current_participants }}/{{ m.max_participants }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <a href="{{ url_for('admin.masterclasses') }}" class="btn btn-sm btn-primary">Все мастер-классы</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

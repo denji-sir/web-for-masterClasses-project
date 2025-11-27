@@ -1,0 +1,17 @@
+Flask==2.3.3
+Flask-SQLAlchemy==3.0.5
+Flask-WTF==1.1.1
+Flask-Mail==0.9.1
+WTForms==3.0.1
+email-validator==2.0.0
+Werkzeug==2.3.7
+Jinja2==3.1.2
+python-dotenv==1.0.0
+icalendar==5.0.11
+
+# Testing dependencies
+pytest==7.4.2
+pytest-flask==1.2.0
+hypothesis==6.88.1
+coverage==7.3.2
+factory-boy==3.3.0

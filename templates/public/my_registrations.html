@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Мои регистрации - Портал мастер-классов{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <h1 class="mb-4">Мои регистрации</h1>
+        
+        <div class="search-box">
+            <h5 class="mb-3"><i class="bi bi-search"></i> Поиск регистраций</h5>
+            <p class="text-muted">Введите email, который вы использовали при регистрации</p>
+            
+            <form method="POST" action="{{ url_for('public.my_registrations') }}" class="needs-validation" novalidate>
+                {{ form.hidden_tag() }}
+                
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-8">
+                        {{ form.email.label(class="form-label") }}
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), type="email", placeholder="example@email.com", required=True) }}
+                            {% if form.email.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.email.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.submit(class="btn btn-primary w-100 btn-lg") }}
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        {% if registrations %}
+        <h3 class="mb-3">Найдено регистраций: {{ registrations|length }}</h3>
+        
+        {% for registration in registrations %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h5 class="card-title">{{ registration.masterclass.title }}</h5>
+                        
+                        <p class="mb-2">
+                            <i class="bi bi-calendar-event"></i> 
+                            <strong>Дата:</strong> {{ registration.masterclass.date_time.strftime('%d.%m.%Y в %H:%M') }}
+                        </p>
+                        
+                        <p class="mb-2">
+                            <i class="bi bi-person-fill"></i> 
+                            <strong>Имя:</strong> {{ registration.user_name }}
+                        </p>
+                        
+                        <p class="mb-2">
+                            <i class="bi bi-envelope-fill"></i> 
+                            <strong>Email:</strong> {{ registration.user_email }}
+                        </p>
+                        
+                        {% if registration.user_phone %}
+                        <p class="mb-2">
+                            <i class="bi bi-telephone-fill"></i> 
+                            <strong>Телефон:</strong> {{ registration.user_phone }}
+                        </p>
+                        {% endif %}
+                        
+                        <p class="mb-0 text-muted">
+                            <small>
+                                <i class="bi bi-clock-fill"></i> 
+                                Зарегистрирован: {{ registration.registered_at.strftime('%d.%m.%Y в %H:%M') }}
+                            </small>
+                        </p>
+                        
+                        {% if registration.masterclass.is_upcoming %}
+                        <span class="badge bg-success mt-2">Предстоящий</span>
+                        {% else %}
+                        <span class="badge bg-secondary mt-2">Прошедший</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-4 text-end">
+                        <a href="{{ url_for('public.masterclass_detail', masterclass_id=registration.masterclass.id) }}" 
+                           class="btn btn-outline-primary mb-2 w-100">
+                            <i class="bi bi-eye"></i> Подробнее
+                        </a>
+                        
+                        {% if registration.masterclass.can_cancel_registration() %}
+                        <form method="POST" action="{{ url_for('public.cancel_registration', masterclass_id=registration.masterclass.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="email" value="{{ registration.user_email }}">
+                            <button type="submit" class="btn btn-outline-danger w-100" 
+                                    data-confirm="Вы уверены, что хотите отменить регистрацию?">
+                                <i class="bi bi-x-circle"></i> Отменить регистрацию
+                            </button>
+                        </form>
+                        {% else %}
+                        <button class="btn btn-outline-secondary w-100" disabled>
+                            <i class="bi bi-lock"></i> Отмена недоступна
+                        </button>
+                        <small class="text-muted d-block mt-1">
+                            {% if not registration.masterclass.is_upcoming %}
+                            Мастер-класс уже прошел
+                            {% else %}
+                            Менее 24 часов до начала
+                            {% endif %}
+                        </small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

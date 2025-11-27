@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Отзывы - {{ masterclass.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('public.index') }}">Главная</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('public.masterclass_detail', masterclass_id=masterclass.id) }}">{{ masterclass.title }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Отзывы</li>
+        </ol>
+    </nav>
+
+    <!-- Заголовок -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1>Отзывы о мастер-классе</h1>
+            <h3 class="text-muted">{{ masterclass.title }}</h3>
+        </div>
+    </div>
+
+    <!-- Общая статистика -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    {% if average_rating %}
+                        <h2 class="display-4">{{ average_rating }} <span class="text-warning">⭐</span></h2>
+                        <p class="text-muted">На основе {{ review_count }} отзыв{{ 'а' if review_count == 1 else 'ов' }}</p>
+                    {% else %}
+                        <p class="text-muted">Пока нет отзывов</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Список отзывов -->
+    <div class="row">
+        <div class="col-md-12">
+            {% if reviews %}
+                {% for review in reviews %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h5 class="card-title mb-1">{{ review.user.name }}</h5>
+                                <div class="text-warning mb-2">
+                                    {% for i in range(review.rating) %}⭐{% endfor %}
+                                    <span class="text-muted ms-2">{{ review.rating }}/5</span>
+                                </div>
+                            </div>
+                            <small class="text-muted">{{ review.created_at.strftime('%d.%m.%Y') }}</small>
+                        </div>
+                        {% if review.comment %}
+                        <p class="card-text">{{ review.comment }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> Пока нет отзывов об этом мастер-классе. Будьте первым!
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Кнопка назад -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <a href="{{ url_for('public.masterclass_detail', masterclass_id=masterclass.id) }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Назад к мастер-классу
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

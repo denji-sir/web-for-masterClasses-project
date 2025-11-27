@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}Аналитика и статистика - Портал мастер-классов{% endblock %}
+
+{% block content %}
+<!-- Заголовок -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0"><i class="bi bi-graph-up"></i> Аналитика и статистика</h4>
+                        <p class="text-muted mb-0">{{ creator.company_name or user.name }}</p>
+                    </div>
+                    <div>
+                        <a href="{{ url_for('creator.dashboard') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Назад к панели
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Общая статистика -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-calendar-event text-primary" style="font-size: 2rem;"></i>
+                <h3 class="mt-2">{{ stats.total_masterclasses }}</h3>
+                <p class="text-muted mb-0">Всего мастер-классов</p>
+                <small class="text-success">{{ stats.upcoming_masterclasses }} предстоящих</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-people text-info" style="font-size: 2rem;"></i>
+                <h3 class="mt-2">{{ stats.total_participants }}</h3>
+                <p class="text-muted mb-0">Всего участников</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-currency-dollar text-warning" style="font-size: 2rem;"></i>
+                <h3 class="mt-2">{{ stats.total_revenue }} ₽</h3>
+                <p class="text-muted mb-0">Общий доход</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-star text-success" style="font-size: 2rem;"></i>
+                <h3 class="mt-2">{{ stats.average_rating }}★</h3>
+                <p class="text-muted mb-0">Средний рейтинг</p>
+                <small class="text-muted">{{ stats.total_reviews }} отзывов</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Отчет о доходах -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-cash-stack"></i> Отчет о доходах</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="border rounded p-3 text-center">
+                            <h4 class="text-primary">{{ revenue_report.total_revenue }} ₽</h4>
+                            <p class="text-muted mb-0">Общий доход</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="border rounded p-3 text-center">
+                            <h4 class="text-info">{{ revenue_report.masterclasses_count }}</h4>
+                            <p class="text-muted mb-0">Проведено мастер-классов</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="border rounded p-3 text-center">
+                            <h4 class="text-success">{{ revenue_report.average_revenue_per_masterclass }} ₽</h4>
+                            <p class="text-muted mb-0">Средний доход за мастер-класс</p>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if revenue_report.revenue_timeline %}
+                <h6 class="mt-4">Доходы по месяцам</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Месяц</th>
+                                <th class="text-end">Доход</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in revenue_report.revenue_timeline %}
+                            <tr>
+                                <td>{{ item.month }}</td>
+                                <td class="text-end">{{ item.revenue }} ₽</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Статистика популярности -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-trophy"></i> Топ по участникам</h5>
+            </div>
+            <div class="card-body">
+                {% if popularity_stats.top_by_participants %}
+                <div class="list-group list-group-flush">
+                    {% for mc in popularity_stats.top_by_participants %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ mc.title }}</strong>
+                            <br>
+                            <small class="text-muted">{{ mc.participants }}/{{ mc.max_participants }} участников</small>
+                        </div>
+                        <div>
+                            <span class="badge bg-info rounded-pill">{{ mc.fill_percentage }}%</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center">Нет данных</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-star-fill"></i> Топ по рейтингу</h5>
+            </div>
+            <div class="card-body">
+                {% if popularity_stats.top_by_rating %}
+                <div class="list-group list-group-flush">
+                    {% for mc in popularity_stats.top_by_rating %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ mc.title }}</strong>
+                            <br>
+                            <small class="text-muted">{{ mc.review_count }} отзывов</small>
+                        </div>
+                        <div>
+                            <span class="badge bg-success rounded-pill">{{ mc.rating }}★</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center">Нет данных</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Статистика по категориям -->
+{% if popularity_stats.category_stats %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-tags"></i> Статистика по категориям</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Категория</th>
+                                <th class="text-center">Мастер-классов</th>
+                                <th class="text-center">Участников</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for category, data in popularity_stats.category_stats.items() %}
+                            <tr>
+                                <td><span class="badge bg-secondary">{{ category }}</span></td>
+                                <td class="text-center">{{ data.count }}</td>
+                                <td class="text-center">{{ data.total_participants }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

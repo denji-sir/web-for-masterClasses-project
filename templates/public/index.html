@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Главная - Портал мастер-классов{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section mb-5">
+    <div class="row align-items-center">
+        <div class="col-lg-6 mb-4 mb-lg-0">
+            <h1 class="display-4 fw-bold mb-3 gradient-text">
+                Откройте мир знаний
+            </h1>
+            <p class="lead text-muted mb-4">
+                Присоединяйтесь к тысячам учеников и найдите идеальный мастер-класс для развития ваших навыков
+            </p>
+            <div class="d-flex gap-3">
+                <a href="{{ url_for('public.search') }}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-search me-2"></i>Найти мастер-класс
+                </a>
+                <a href="{{ url_for('creator.register') }}" class="btn btn-outline-primary btn-lg">
+                    <i class="bi bi-plus-circle me-2"></i>Стать создателем
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="hero-illustration">
+                <i class="bi bi-mortarboard-fill"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row fade-in">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold mb-0">
+                <i class="bi bi-grid-3x3-gap-fill me-2 text-primary"></i>
+                Доступные мастер-классы
+            </h2>
+            <span class="badge bg-light text-dark">
+                {{ masterclasses|length }} {% if masterclasses|length == 1 %}мастер-класс{% elif masterclasses|length < 5 %}мастер-класса{% else %}мастер-классов{% endif %}
+            </span>
+        </div>
+        
+        <!-- Фильтр по категориям -->
+        <div class="category-filter mb-4">
+            <div class="btn-group flex-wrap" role="group">
+                <a href="{{ url_for('public.index') }}" 
+                   class="btn btn-outline-primary {% if not selected_category %}active{% endif %}">
+                    <i class="bi bi-grid me-1"></i> Все категории
+                </a>
+                {% for cat_value, cat_name in categories %}
+                <a href="{{ url_for('public.index', category=cat_value) }}" 
+                   class="btn btn-outline-primary {% if selected_category == cat_value %}active{% endif %}">
+                    {{ cat_name }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Список мастер-классов -->
+        {% if masterclasses %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for masterclass in masterclasses %}
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ masterclass.title }}</h5>
+                        <p class="card-text text-muted">
+                            {{ masterclass.description[:150] }}{% if masterclass.description|length > 150 %}...{% endif %}
+                        </p>
+                        
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="bi bi-calendar-event"></i> 
+                                {{ masterclass.date_time.strftime('%d.%m.%Y в %H:%M') }}
+                            </small>
+                        </div>
+                        
+                        {% if masterclass.category %}
+                        <div class="mb-2">
+                            <span class="badge bg-secondary">{{ masterclass.category }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="mb-2">
+                            {% if masterclass.price %}
+                            <strong class="text-primary">{{ masterclass.price }} ₽</strong>
+                            {% else %}
+                            <strong class="text-success">Бесплатно</strong>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {% if masterclass.is_full %}
+                            <span class="badge bg-danger">Мест нет</span>
+                            {% else %}
+                            <span class="badge bg-success">
+                                Осталось {{ masterclass.available_spots }} 
+                                {% if masterclass.available_spots == 1 %}место{% elif masterclass.available_spots < 5 %}места{% else %}мест{% endif %}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer bg-transparent">
+                        <a href="{{ url_for('public.masterclass_detail', masterclass_id=masterclass.id) }}" 
+                           class="btn btn-primary w-100">
+                            Подробнее
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> 
+            {% if selected_category %}
+            Мастер-классы в выбранной категории не найдены.
+            {% else %}
+            В данный момент нет доступных мастер-классов.
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
